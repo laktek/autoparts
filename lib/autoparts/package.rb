@@ -384,8 +384,11 @@ module Autoparts
 
     # notify the web IDE when a package is installed / uninstalled
     def call_web_hook(action)
-      container = `hostname`.strip
-      Net::HTTP.post_form URI(WEB_HOOK_URL), 'type' => action.to_s, 'name' => self.name, 'version' => self.version, 'container' => container
+      begin
+        container = `hostname`.strip
+        Net::HTTP.post_form URI(WEB_HOOK_URL), 'type' => action.to_s, 'name' => self.name, 'version' => self.version, 'container' => container
+      rescue => e
+      end
     end
 
     # -- implement these methods --
