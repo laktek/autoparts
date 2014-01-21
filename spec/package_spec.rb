@@ -708,4 +708,13 @@ describe Autoparts::Package do
       end
     end
   end
+
+  describe '#call_web_hook' do
+    it 'calls the endpoint with the action, name, version and container' do
+      foo_package.stub(:`).with('hostname').and_return 'my-box-42'
+
+      expect(Net::HTTP).to receive(:post_form).with URI('https://www.nitrous.io/autoparts/webhook'), 'type' => 'installed', 'name' => 'foo', 'version' => '1.0', 'container' => 'my-box-42'
+      foo_package.call_web_hook :installed
+    end
+  end
 end

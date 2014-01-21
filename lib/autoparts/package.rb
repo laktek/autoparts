@@ -1,9 +1,11 @@
 require 'unindent/unindent'
+require 'net/http'
 require 'etc'
 
 module Autoparts
   class Package
     BINARY_HOST = 'http://parts.nitrous.io'.freeze
+    WEB_HOOK_URL = 'https://www.nitrous.io/autoparts/webhook'.freeze
     include PackageDeps
 
     class << self
@@ -307,6 +309,7 @@ module Autoparts
       else
         puts "=> Installed #{name} #{version}\n"
         puts tips
+        call_web_hook :installed
       end
     end
 
@@ -332,6 +335,7 @@ module Autoparts
       post_uninstall
 
       puts "=> Uninstalled #{name} #{version}\n"
+      call_web_hook :uninstalled
     end
 
     def upload_archive
@@ -376,6 +380,12 @@ module Autoparts
 
     def remote_file_exists?(url)
       `curl -IsL -w \"%{http_code}\" '#{url}' -o /dev/null 2> /dev/null`.strip == '200'
+    end
+
+    # notify the web IDE when a package is installed / uninstalled
+    def call_web_hook(action)
+      container = `hostname`.strip
+      Net::HTTP.post_form URI(WEB_HOOK_URL), 'type' => action.to_s, 'name' => self.name, 'version' => self.version, 'container' => container
     end
 
     # -- implement these methods --
