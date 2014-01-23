@@ -710,17 +710,24 @@ describe Autoparts::Package do
   end
 
   describe '#call_web_hook' do
-    it 'calls the endpoint with the action, name, version and container' do
-      foo_package.stub(:`).with('hostname').and_return 'my-box-42'
+    before do
+      File.stub(:read) { '42 ' }
+      Autoparts::Commands::Help.stub(:version) { '1.0.0-abcd' }
+    end
 
-      expect(Net::HTTP).to receive(:post_form).with URI('https://www.nitrous.io/autoparts/webhook'), 'type' => 'installed', 'name' => 'foo', 'version' => '1.0', 'container' => 'my-box-42'
+    it 'calls the endpoint with the action, name, version, box id and autoparts version' do
+      expect(Net::HTTP).to receive(:post_form).with URI('https://www.nitrous.io/autoparts/webhook'), {
+        'type' => 'installed',
+        'part_name' => 'foo',
+        'part_version' => '1.0',
+        'box_id' => '42',
+        'autoparts_version' => '1.0.0-abcd'
+      }
       foo_package.call_web_hook :installed
     end
 
     context 'when calling the endpoint raises an exception' do
       it 'fails silently, allowing the command to exit without an error status' do
-        foo_package.stub(:`).with('hostname').and_return 'my-box-42'
-
         expect(Net::HTTP).to receive(:post_form).and_raise('an error')
         expect(foo_package.call_web_hook(:installed)).to be_nil
       end
