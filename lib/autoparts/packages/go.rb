@@ -19,15 +19,19 @@ module Autoparts
         execute 'mv', extracted_archive_path + 'go', prefix_path
       end
 
+      def required_env
+        [
+          'GOROOT="$AUTOPARTS_ROOT/bin"'
+          'GOPATH="$HOME/workspace/go"'
+        ]
+      end
+
+      def post_symlink
+
+      end
+
       def tips
         <<-EOS.unindent
-          Set the GOROOT environment variable to /home/action/.parts/bin
-            $ export GOROOT=/home/action/.parts/bin
-          or add the line above to your ~/.bashrc or ~/.zshrc file
-
-          As of go 1.2, a valid GOPATH is required to use the `go get` command:
-            http://golang.org/doc/code.html#GOPATH
-
           `go vet` and `go doc` are now part of the go.tools sub repo:
             http://golang.org/doc/go1.2#go_tools_godoc
 
