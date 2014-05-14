@@ -19,6 +19,40 @@ module Autoparts
         execute 'mv', extracted_archive_path + 'go', prefix_path
       end
 
+      def inject_goroot_and_gopath(path)
+        export_goroot = "export GOROOT=$HOME/.parts/bin:$PATH\n"
+        export_gopath = "export GOPATH=$HOME/workspace:$PATH\n"
+        file = File.read(path)
+
+        if !file.gsub!(/^export GOROOT=.*$/, export_goroot)
+          file = "#{file}#{export_goroot}"
+        end
+
+        if !file.gsub!(/^export GOPATH=.*$/, export_gopath)
+          file = "#{file}#{export_gopath}"
+        end
+
+        File.open(path, 'w+') { |f| f.write(file) }
+      end
+
+      def post_symlink
+        bash_profile_path = Path.home + '.bash_profile'
+        bashrc_path = Path.home + '.bashrc'
+        zshrc_path = Path.home + '.zshrc'
+
+        if bash_profile_path.exist?
+          inject_goroot_and_gopath(bash_profile_path)
+        end
+
+        if bashrc_path.exist?
+          inject_goroot_and_gopath(bash_profile_path)
+        end
+
+        if zshrc_path.exist?
+          inject_goroot_and_gopath(bash_profile_path)
+        end
+      end
+
       def tips
         <<-EOS.unindent
           Set the GOROOT environment variable to /home/action/.parts/bin
